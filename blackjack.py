@@ -11,98 +11,99 @@ class Player:
         self.result = list()
         self.earnings = list()
         self.hand = None
+        self.status = None
 
-    def apply_basic_strategy(self, player, dealer, doubling_down=True):
+    def apply_basic_strategy(self, player_hand, dealer_hand, doubling_down=True):
         """
         Apply basic strategy rules given player and dealer hands.
         Details: http://www.cs.bu.edu/~hwxi/academic/courses/CS320/Spring02/assignments/06/basic-strategy.html
-        :param player: player hand ceiled to 10
-        :param dealer: dealer hand ceiled to 10
+        :param player_hand: player hand ceiled to 10
+        :param dealer_hand: dealer hand ceiled to 10
         :return action: one of hit, double, stand, split actions.
         """
-        summe = sum(player)
-        if player[0] != player[1]:
-            if 1 not in player:
-                if summe <= 8:
+        player_sum = player_hand.sum()
+        if player_hand[0] != player_hand[1]:
+            if 1 not in player_hand:
+                if player_sum <= 8:
                     return "hit"
-                elif summe == 9:
-                    if dealer >= 3 and dealer <= 6:
+                elif player_sum == 9:
+                    if dealer_hand >= 3 and dealer_hand <= 6:
                         return "double"
                     return "hit"
-                elif summe == 10:
-                    if dealer >= 2 and dealer <= 9:
+                elif player_sum == 10:
+                    if dealer_hand >= 2 and dealer_hand <= 9:
                         return "double"
                     return "hit"
-                elif summe == 11:
-                    if dealer >= 2 and dealer <= 10:
+                elif player_sum == 11:
+                    if dealer_hand >= 2 and dealer_hand <= 10:
                         return "double"
                     return "hit"
-                elif summe == 12:
-                    if dealer >= 4 and dealer <= 6:
+                elif player_sum == 12:
+                    if dealer_hand >= 4 and dealer_hand <= 6:
                         return "stand"
                     return "hit"
-                elif summe >= 13 and summe <= 16:
-                    if dealer >= 2 and dealer <= 6:
+                elif player_sum >= 13 and player_sum <= 16:
+                    if dealer_hand >= 2 and dealer_hand <= 6:
                         return "stand"
                     return "hit"
                 return "stand"
             else:
-                if summe == 3 or summe == 4:
-                    if dealer == 5 or dealer == 6:
+                if player_sum == 3 or player_sum == 4:
+                    if dealer_hand == 5 or dealer_hand == 6:
                         return "double"
                     return "hit"
-                elif summe == 5 or summe == 6:
-                    if dealer >= 4 and dealer <= 6:
+                elif player_sum == 5 or player_sum == 6:
+                    if dealer_hand >= 4 and dealer_hand <= 6:
                         return "double"
                     return "hit"
-                elif summe == 7:
-                    if dealer >= 3 and dealer <= 6:
+                elif player_sum == 7:
+                    if dealer_hand >= 3 and dealer_hand <= 6:
                         return "double"
                     return "hit"
-                elif summe == 8:
-                    if dealer >= 3 and dealer <= 6:
+                elif player_sum == 8:
+                    if dealer_hand >= 3 and dealer_hand <= 6:
                         return "double"
-                    elif dealer == 2 or dealer == 7 or dealer == 8:
+                    elif dealer_hand == 2 or dealer_hand == 7 or dealer_hand == 8:
                         return "stand"
                     return "hit"
                 else:
                     return "stand"
         else:
             if doubling_down:
-                if player[0] == 1:
+                if player_hand[0] == 1:
                     return "split"
-                elif player[0] == 2 or player[0] == 3:
-                    if dealer >= 2 and dealer <= 7:
+                elif player_hand[0] == 2 or player_hand[0] == 3:
+                    if dealer_hand >= 2 and dealer_hand <= 7:
                         return "split"
                     return "hit"
-                elif player[0] == 4:
-                    if dealer == 5 or dealer == 6:
+                elif player_hand[0] == 4:
+                    if dealer_hand == 5 or dealer_hand == 6:
                         return "split"
                     return "hit"
-                elif player[0] == 5:
-                    if dealer >= 2 and dealer <= 9:
+                elif player_hand[0] == 5:
+                    if dealer_hand >= 2 and dealer_hand <= 9:
                         return "double"
                     return "hit"
-                elif player[0] == 6 or player[0] == 7:
-                    if dealer >= 2 and dealer <= player[0]:
+                elif player_hand[0] == 6 or player_hand[0] == 7:
+                    if dealer_hand >= 2 and dealer_hand <= player_hand[0]:
                         return "split"
                     return "hit"
-                elif player[0] == 8:
+                elif player_hand[0] == 8:
                     return "split"
-                elif player[0] == 9:
-                    if dealer == 1 or dealer == 7 or dealer == 10:
+                elif player_hand[0] == 9:
+                    if dealer_hand == 1 or dealer_hand == 7 or dealer_hand == 10:
                         return "stand"
                     return "split"
                 return "stand"
             else:
-                if player[0] == 2 or player[0] == 3:
-                    if dealer >= 4 and dealer <= 7:
+                if player_hand[0] == 2 or player_hand[0] == 3:
+                    if dealer_hand >= 4 and dealer_hand <= 7:
                         return "split"
                     return "hit"
-                elif player[0] == 4:
+                elif player_hand[0] == 4:
                     return "hit"
-                elif player[0] == 6:
-                    if dealer >= 3 and dealer <= 6:
+                elif player_hand[0] == 6:
+                    if dealer_hand >= 3 and dealer_hand <= 6:
                         return "split"
                     return "hit"
     # TODO: add card counting and pure random strategies.
@@ -110,7 +111,7 @@ class Player:
 
 class Game:
 
-    def __init__(self, player_num, money, bet, deck_num, logging_level):
+    def __init__(self, player_num, start_money, bet, deck_num, logging_level, dealer_threshold=17):
 
         # logging
         numeric_level = getattr(logging, logging_level.upper(), None)
@@ -132,6 +133,7 @@ class Game:
         self.deck = np.repeat(np.arange(1, 14), 4 * deck_num)
         self.deck_length = len(self.deck)
         self.dealer_hand = None
+        self.dealer_threshold = dealer_threshold
         # inline shuffle
         np.random.shuffle(self.deck)
         # ratios. Subject to change.
@@ -143,7 +145,7 @@ class Game:
         self.logger.info("Cut card: {}".format(self.cut_card))
         self.players = list()
         for i in range(player_num):
-            self.players.append(Player(money, bet))
+            self.players.append(Player(start_money, bet))
 
         self.ceil_to_10 = np.vectorize(self.ceil_2_10)
 
@@ -164,77 +166,140 @@ class Game:
         player.money = player.money + max(0, earning) + np.sign(ratio + 1) * player.bet
         return earning
 
-    def dealer_sum(self):
-
-        # TODO: complete
-        return self.dealer_hand.sum()
-
-    def play_round(self, round_, action, player):
+    @staticmethod
+    def hand_sum(hand):
         """
-        Play one round of the game.
-        :param round_: current round of the game
+        Ace can worth 1 or 11 depending on the hand.
+        :param hand: List of cards from players or the dealer
+        :return: closest sum to 21
+        """
+        prev_sum = hand.sum()
+        curr_sum = prev_sum
+        if 1 in hand:
+            hand[np.where(hand == 1)[0][0]] = 11
+            curr_sum = hand.sum()
+        if abs(21-prev_sum) < abs(21-curr_sum):
+            return prev_sum
+        return curr_sum
+
+    def finish_round(self, player):
+        """
+        :param player:
+        :return:
+        """
+        player_sum = self.hand_sum(player.hand)
+        dealer_sum = self.hand_sum(self.dealer_hand)
+        # win case
+        if dealer_sum > 21 or (21 - dealer_sum) > (21 - player_sum):
+            ratio = self.ratios["win"]
+            earning = self.calculate_round(ratio, player)
+            self.logger.debug("Round: {} Win! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+                              "Earning:{} Current Money:{}".format(self.round, player.hand, self.dealer_hand,
+                                                                   player.bet, ratio, earning, player.money))
+        # lost case
+        else:
+            ratio = self.ratios["lost"]
+            earning = self.calculate_round(ratio, player)
+            self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+                              "Earning:{} Current Money:{}".format(self.round, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
+
+    def play_round_dealer(self):
+        """
+        Play one round for the dealer.
+        :return:
+        """
+        dealer_sum = self.hand_sum(self.dealer_hand)
+        while dealer_sum < self.dealer_threshold:
+            self.dealer_hand = np.append(self.dealer_hand, self.ceil_to_10(self.deck[self.i]))
+            self.i += 1
+            dealer_sum = self.hand_sum(self.dealer_hand)
+
+    def play_round_player(self, action, player):
+        """
+        Play one round of the game for a player.
         :param action: action of the hand. One of double, split, hit, stand.
-        :param i: index of the deck
-        :param cut_card: cut_card of the deck (where the game stops and a new one begins after shuffling)
-        :param deck:
-        :param bet: current bet of the hand
-        :money: current money of the hand
+        :param player:
         :return: Nothing, updates player, dealer and game index.
         """
         if action == "stand":
-            # TODO: Dealer sum should be defined. Ace can worht 1 or 11 depending on the combination.
-            dealer_sum = np.sum(self.dealer_hand)
-            player_sum = np.sum(player.hand)
-            # TODO blackjack happens iff card number is 2 and sum is 21. otherwise its simple 21.
-            if player_sum == 21:
-                if dealer_sum == 21:
-                    ratio = self.ratios["push"]
-                    earning = self.calculate_round(ratio, player)
-                    self.logger.debug("Round: {} Push! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
-                                      "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
-                else:
-                    ratio = self.ratios["blackjack"]
-                    earning = self.calculate_round(ratio, player)
-                    self.logger.debug("Round: {} BlackJack! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
-                                      "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
-            else:
-                while dealer_sum < 17:
-                    # draw one more time
-                    self.dealer_hand = np.append(self.dealer_hand, self.ceil_to_10(self.deck[self.i]))
-                    self.i += 1
-                    self.cut_card -= 1
-                    dealer_sum = np.sum(self.dealer_hand)
-                # win case
-                if dealer_sum > 21 or (21 - dealer_sum) > (21 - player_sum):
-                    ratio = self.ratios["win"]
-                    earning = self.calculate_round(ratio, player)
-                    self.logger.debug("Round: {} Win! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
-                                      "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
-                # lost case
-                elif dealer_sum == 21 or (21 - dealer_sum) < (21 - player_sum):
-                    ratio = self.ratios["lost"]
-                    earning = self.calculate_round(ratio, player)
-                    self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
-                                      "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
-                    return
+            return
+
+            # if player_sum == 21:
+            #     if dealer_sum == 21:
+            #         ratio = self.ratios["push"]
+            #         earning = self.calculate_round(ratio, player)
+            #         self.logger.debug("Round: {} Push! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
+            #                           "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
+            #     else:
+            #         ratio = self.ratios["blackjack"]
+            #         earning = self.calculate_round(ratio, player)
+            #         self.logger.debug("Round: {} BlackJack! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
+            #                           "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
+            # else:
+            #     while dealer_sum < 17:
+            #         # draw one more time
+            #         self.dealer_hand = np.append(self.dealer_hand, self.ceil_to_10(self.deck[self.i]))
+            #         self.i += 1
+            #         self.cut_card -= 1
+            #         dealer_sum = np.sum(self.dealer_hand)
+            #     # win case
+            #     if dealer_sum > 21 or (21 - dealer_sum) > (21 - player_sum):
+            #         ratio = self.ratios["win"]
+            #         earning = self.calculate_round(ratio, player)
+            #         self.logger.debug("Round: {} Win! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+            #                           "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
+            #     # lost case
+            #     elif dealer_sum == 21 or (21 - dealer_sum) < (21 - player_sum):
+            #         ratio = self.ratios["lost"]
+            #         earning = self.calculate_round(ratio, player)
+            #         self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+            #                           "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
+            #         return
         elif action == "hit":
             player.hand = np.append(player.hand, self.ceil_to_10(self.deck[self.i]))
             self.i += 1
-            self.cut_card -= 1
-            player_sum = np.sum(player.hand)
-            # busted case
+            player_sum = self.hand_sum(player.hand)
+            # busted
             if player_sum > 21:
                 ratio = self.ratios["lost"]
                 earning = self.calculate_round(ratio, player)
                 self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
-                                  "Earning:{} Current Money:{}".format(round_, player.hand, self.dealer_hand, player.bet, ratio, earning, player.money))
-            # if not busted, the function will be recalled.
+                                  "Earning:{} Current Money:{}".format(self.round, player.hand, self.dealer_hand,
+                                                                       player.bet, ratio, earning, player.money))
+                player.status = "lost"
+                return
             else:
-                action = player.apply_basic_strategy(player.hand, self.dealer_hand)
-                self.play_round(round_, action, player.hand)
+                action = player.apply_basic_strategy(player.hand, self.dealer_hand[0])
+                self.play_round_player(action, player)
+        elif action == "split":
+            self.logger.debug("Round: {} Split Player hand:{} Dealer hand: {}".format(self.round, player.hand,
+                                                                                      self.dealer_hand))
+            player_hand = player.hand
+            first = np.append(player_hand[0], self.ceil_to_10(self.deck[self.i]))
+            self.i += 1
+            player.hand = first
+            action = player.apply_basic_strategy(player.hand, self.dealer_hand[0])
+            self.play_round_player(action, player)
+            second = np.append(player_hand[1], self.ceil_to_10(self.deck[self.i]))
+            self.i += 1
+            player.hand = second
+            action = player.apply_basic_strategy(player.hand, self.dealer_hand[0])
+            self.play_round_player(action, player)
+        elif action == "double":
+            player.bet = 2 * player.bet
+            player.hand = np.append(player.hand, self.ceil_to_10(self.deck[self.i]))
+            self.i += 1
+            player_sum = self.hand_sum(player.hand)
+            # busted
+            if player_sum > 21:
+                ratio = self.ratios["lost"]
+                earning = self.calculate_round(ratio, player)
+                self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{} "
+                                  "Earning:{} Current Money:{}".format(self.round, player.hand, self.dealer_hand,
+                                                                       player.bet, ratio, earning, player.money))
+                player.status = "lost"
 
     def play_game(self):
-
 
         while self.cut_card > self.i and self.i < len(self.deck):
             # self.i += 1  # burning the first card.
@@ -244,12 +309,49 @@ class Game:
                 self.players[i].bet = self.bet
                 self.players[i].money -= self.bet
                 self.players[i].hand = self.ceil_to_10(self.deck[[self.i+i, self.i+self.player_num+1+i]])
-            self.dealer_hand = self.deck[[self.i+self.player_num, self.i+2*self.player_num+1]]
-            self.i += (self.player_num+1)*2
+            self.dealer_hand = self.ceil_to_10(self.deck[[self.i+self.player_num, self.i+2*self.player_num+1]])
+            self.i += (self.player_num + 1) * 2
             for i in range(self.player_num):
                 self.logger.debug("Round: {} Player-{} hand: {}".format(self.round, i, self.players[i].hand))
             self.logger.debug("Round: {} Dealer hand: {}".format(self.round, self.dealer_hand))
+            # play game for each player
+            for i in range(self.player_num):
+                # player got black jack
+                if self.players[i].hand.sum() == 11:
+                    # dealer got black jack
+                    if self.dealer_hand.sum() == 11:
+                        ratio = self.ratios["push"]
+                        earning = self.calculate_round(ratio, self.players[i])
+                        self.logger.debug("Round: {} Push! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+                                          "Earning:{} Current Money:{}".format(self.round, self.players[i].hand,
+                                                                               self.dealer_hand, self.players[i].bet,
+                                                                               ratio, earning, self.players[i].money))
+                    else:
+                        ratio = self.ratios["blackjack"]
+                        earning = self.calculate_round(ratio, self.players[i])
+                        self.logger.debug("Round: {} Black Jack! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+                                          "Earning:{} Current Money:{}".format(self.round, self.players[i].hand,
+                                                                               self.dealer_hand, self.players[i].bet,
+                                                                               ratio, earning, self.players[i].money))
+                # dealer got black jack
+                elif self.dealer_hand.sum() == 11:
+                    ratio = self.ratios["lost"]
+                    earning = self.calculate_round(ratio, self.players[i])
+                    self.logger.debug("Round: {} Lost! Player hand:{} Dealer hand:{} Current bet:{} Earning ratio:{}"
+                                      "Earning:{} Current Money:{}".format(self.round, self.players[i].hand,
+                                                                           self.dealer_hand, self.players[i].bet, ratio,
+                                                                           earning, self.players[i].money))
+                else:
+                    # players play the hand
+                    action = self.players[i].apply_basic_strategy(self.players[i].hand, self.dealer_hand[0])
+                    self.play_round_player(action, self.players[i])
 
+            # dealer play
+            self.play_round_dealer()
+            for i in range(self.player_num):
+                if self.players[i].status is not None:
+                    continue
+                self.finish_round(self.players[i])
 
-game = Game(3, 100, 1, 4, "debug")
+game = Game(3, 100, 1, 8, "debug")
 game.play_game()
