@@ -1,0 +1,5 @@
+Cikarimlar:
+	sonlu ve sonsuz kagitta:
+		- basic strategy getirisi ()
+		- exit strategy'si (max, min)
+		
