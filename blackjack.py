@@ -454,21 +454,16 @@ class Game:
 if __name__ == '__main__':
 
     game = Game(1, 100, 1, 8, "debug")
-    game.deck[0] = 1
-    game.deck[1] = 9
-    game.deck[2] = 1
-    game.deck[4] = 7
-    game.deck[5] = 1
-    game.play_game()
-    # game = Game(1, 100, 1, 8, "debug")
-    # xlist = list()
-    # # keep playing as long as money is above 80
-    # while game.players[0].money > 80:
-    #     # keep playing if there is card
-    #     if game.index < game.cut_card and game.index < game.deck_length:
-    #         game.round += 1
-    #         if game.play_round():
-    #             xlist.append(game.players[0].money)
-    #         else:
-    #             game = Game(1, game.players[0].money, 1, 8, "debug")
-    # print(xlist)
+    xlist = list()
+    # keep playing as long as money is above 80
+    while game.players[0].money > 90:
+        # keep playing if there is card
+        if game.index < game.cut_card and game.index < game.deck_length:
+            game.round += 1
+            if game.play_round():
+                xlist.append(game.players[0].money)
+            else:
+                game = Game(1, game.players[0].money, 1, 8, "debug")
+        else:
+            game = Game(1, game.players[0].money, 1, 8, "debug")
+    print(xlist)
