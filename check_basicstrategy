@@ -1,0 +1,8 @@
+DEBUG:Round:3	Player-0 hand:[1 7]
+DEBUG:Round:3	Dealer hand:[10  7]
+DEBUG:Round:3	Player hit.	Player hand:[1 7 6]	Dealer hand:[10  7]
+DEBUG:Round:3	Player hit.	Player hand:[1 7 6 1]	Dealer hand:[10  7]
+DEBUG:Round:3	Player hit.	Player hand:[1 7 6 1 1]	Dealer hand:[10  7]
+DEBUG:Round:3	Player hit.	Player hand:[ 1  7  6  1  1 10]	Dealer hand:[10  7]
+DEBUG:Round:3	Lost	Player hand:[ 1  7  6  1  1 10]	Dealer hand:[10  7]	Current bet:1	Earning ratio:-1	Earning:-1	Current Money:99.5
+
