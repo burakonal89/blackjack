@@ -122,9 +122,9 @@ class Game:
             self.dealer.sum = self.hand_sum(self.dealer.hand)
             if self.dealer.sum > 21:
                 self.dealer.status = "lost"
+                return True
         self.dealer.status = "wait"
         return True
-
 
     def play_round_player(self, action, hand, player):
         """
@@ -332,4 +332,10 @@ class Game:
 if __name__ == '__main__':
 
     game = Game(1, 100, 1, 8, "debug")
+    game.deck[0] = 6
+    game.deck[1] = 10
+    game.deck[2] = 10
+    game.deck[3] = 4
+    game.deck[4] = 1
+    game.deck[5] = 10
     game.play_game()
