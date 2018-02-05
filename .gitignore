@@ -1,3 +1,4 @@
 # will populate in future if necessary.
 .idea/
 .ipynb_checkpoints/
+__pycache__
