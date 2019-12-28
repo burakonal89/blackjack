@@ -1,6 +1,0 @@
-DEBUG:Round:12	Player-0 hand:[ 6 10]
-DEBUG:Round:12	Dealer hand:[10  4]
-DEBUG:Round:12	Player hit.	Player hand:[ 6 10  1]	Dealer hand:[10  4]
-DEBUG:Round:12	Player stands.	Player hand:[ 6 10  1]	Dealer hand:[10  4]
-DEBUG:Round:12	Dealer hit.	Dealer hand:[10  4 10]
-DEBUG:Round:12	Lost	Player hand:[ 6 10  1]	Dealer hand:[10  4 10]	Current bet:1	Earning ratio:-1	Earning:-1	Current Money:95.5
