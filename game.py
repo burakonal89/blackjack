@@ -28,7 +28,7 @@ class Game:
         numeric_level = getattr(logging, logging_level.upper(), None)
         if not isinstance(numeric_level, int):
             raise ValueError('Invalid log level: {}'.format(logging_level))
-        self.logger.basicConfig(level=numeric_level)
+        self.logger.basicConfig(level=logging.INFO)
         self.index = 0
         self.round = 0
         self.players = []
@@ -38,7 +38,7 @@ class Game:
         self.hands = {i: [Hand(self.bet)] for i in range(self.number_of_players)}
         self.hands[self.id] = []
         for i, player, start_money in zip(range(self.number_of_players), players, start_moneys):
-            self.players.append(Player(player, start_money, i, self.hands))
+            self.players.append(Player(player, start_money, i, self.hands, logging.INFO))
         self.deck = np.repeat(np.arange(1, 14), 4 * number_of_decks)
         self.deck_length = len(self.deck)
         # inline shuffle
@@ -51,7 +51,7 @@ class Game:
         self.cut_card = np.random.randint(low=int(self.deck_length / 2), high=int(self.deck_length))
         self.index = 0  # index, to keep track of the cards in the deck
         self.game_round = 0  # to keep track of the game
-        self.logger.info("The game starts.\n"
+        self.logger.debug("Game starts.\n"
                          "Deck: {}\n"
                          "The ratios:{}\n"
                          "The deck length:{}\n"
@@ -64,8 +64,8 @@ class Game:
         #TODO: purposes. Or can you somehow?
         """
         if self.index == self.cut_card:
-            self.logger.info("Cut card reached at index: {}\n"
-                             "Game terminating.".format(self.index))
+            self.logger.debug("Cut card reached at index: {}\n"
+                              "Game terminating.".format(self.index))
             return True
         return False
 
@@ -272,13 +272,18 @@ class Game:
                                                                                                        player.current_money))
         return True
 
-    def play_game(self):
+    def play_game(self, index=1):
         """
 
         """
         while True:
-            if not self.play_round():
+            result = self.play_round()
+            if not result:
                 break
+        for player in self.players:
+            self.logger.debug("Game-{}\tPlayer-{}\tmoneys: {}".format(index,
+                                                                     player.id+1,
+                                                                     player.moneys))
 
 
 if __name__ == '__main__':

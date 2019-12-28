@@ -2,6 +2,7 @@
 
 import numpy as np
 from hand import Hand
+import logging
 
 
 class Player:
@@ -19,7 +20,8 @@ class Player:
                  type,
                  start_money,
                  id,
-                 hands):
+                 hands,
+                 logging_level):
         self.type = type
         self.current_money = start_money
         self.moneys = [start_money]
@@ -28,6 +30,11 @@ class Player:
         self.hands = hands
         self.results = list()
         self.earnings = list()
+        self.logger = logging
+        self.logger.basicConfig(level=logging_level)
+        if type != 'basic':
+            self.logger.info("{} will be implemented by ILHAN YILDIRIM, hopefully...".format(type))
+            raise NotImplementedError("{} will be implemented by ILHAN YILDIRIM, hopefully...".format(type))
 
     def apply_basic_strategy(self,
                              hand,
