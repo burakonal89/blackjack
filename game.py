@@ -1,7 +1,7 @@
 import numpy as np
 import logging
-from Player import Player
-from Hand import Hand
+from player import Player
+from hand import Hand
 
 class Game:
     """
