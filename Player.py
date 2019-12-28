@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from hand import Hand
+from Hand import Hand
 
 
 class Player:
