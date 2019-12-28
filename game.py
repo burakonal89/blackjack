@@ -164,28 +164,28 @@ class Game:
                 if hand.status == 'discard':
                     continue
                 if hand.status == "lost":
-                    player.start_money += self.ratios["lost"]*hand.bet
+                    player.current_money += self.ratios["lost"] * hand.bet
                 elif hand.status == "blackjack":
                     if dealer_hand == [1, 10] or dealer_hand == [10, 1]:
-                        player.start_money += self.ratios["push"] * hand.bet
+                        player.current_money += self.ratios["push"] * hand.bet
                         hand.status = 'push'
                     else:
-                        player.start_money += self.ratios["blackjack"] * hand.bet
+                        player.current_money += self.ratios["blackjack"] * hand.bet
                 elif hand.status == "win":
                     if dealer_sum == 21:
-                        player.start_money += self.ratios["push"] * hand.bet
+                        player.current_money += self.ratios["push"] * hand.bet
                         hand.status = 'push'
                     else:
-                        player.start_money += self.ratios["win"] * hand.bet
+                        player.current_money += self.ratios["win"] * hand.bet
                 elif not hand.status:
                     if dealer_sum > 21 or dealer_sum < hand.sum:
-                        player.start_money += self.ratios["win"] * hand.bet
+                        player.current_money += self.ratios["win"] * hand.bet
                         hand.status = 'win'
                     elif dealer_sum == hand.sum:
-                        player.start_money += self.ratios["push"] * hand.bet
+                        player.current_money += self.ratios["push"] * hand.bet
                         hand.status = 'push'
                     elif dealer_sum > hand.sum:
-                        player.start_money += self.ratios["lost"] * hand.bet
+                        player.current_money += self.ratios["lost"] * hand.bet
                         hand.status = 'lost'
                     else:
                         self.logger.error("Round-{} Player:{}\tno evaluation.".format(self.game_round,
@@ -195,6 +195,9 @@ class Game:
                     self.logger.error("Round-{} Player:{}\tno evaluation.".format(self.game_round,
                                                                                   player.id + 1))
                     raise ValueError
+        # save moneys
+        for player in self.players:
+            player.moneys.append(player.current_money)
         return True
 
     def play_round(self):
@@ -266,7 +269,7 @@ class Game:
                                                                                                        hands,
                                                                                                        statoos,
                                                                                                        bets,
-                                                                                                       player.start_money))
+                                                                                                       player.current_money))
         return True
 
     def play_game(self):

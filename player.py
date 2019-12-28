@@ -21,7 +21,8 @@ class Player:
                  id,
                  hands):
         self.type = type
-        self.start_money = start_money
+        self.current_money = start_money
+        self.moneys = [start_money]
         self.id = id
         self.status = None
         self.hands = hands
