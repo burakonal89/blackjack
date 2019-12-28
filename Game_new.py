@@ -35,7 +35,7 @@ class Game:
         self.bet = bet
         self.number_of_players = len(players)
         self.id = -1
-        self.hands = {i: [Hand(bet)] for i in range(self.number_of_players)}
+        self.hands = {i: [Hand(self.bet)] for i in range(self.number_of_players)}
         self.hands[self.id] = []
         for i, player, start_money in zip(range(self.number_of_players), players, start_moneys):
             self.players.append(Player(player, start_money, i, self.hands))
@@ -81,6 +81,12 @@ class Game:
         """
         Distributes cards to each players and the dealer.
         """
+        # initialise player and hands
+        self.hands = {i: [Hand(self.bet)] for i in range(self.number_of_players)}
+        self.hands[self.id] = []
+        # update player hand
+        for player in self.players:
+            player.hands = self.hands
         for _ in range(2):
             for i, player in enumerate(self.players):
                 if not self.hands[i][0].hand:
@@ -97,9 +103,24 @@ class Game:
             self.index += 1
             if self.cut_card_reached():
                 return False
+        return True
 
-    def calculate_hand_status(self,
-                              hand):
+    @staticmethod
+    def hand_sum(hand):
+        """
+        description goes here.
+        """
+        hand_ = [min(10, card) for card in hand]
+        sum_1 = sum(hand_)
+        sum_2 = sum_1
+        if 1 in hand_:
+            sum_2 = sum_1+10
+        if sum_1 <= 21 and sum_2 <= 21:
+            return max(sum_1, sum_2)
+        return min(sum_1, sum_2)
+
+    @staticmethod
+    def calculate_hand_status(hand):
         """
         Ace can worth 1 or 11 depending on the hand.
         :param hand: List of cards from players or the dealer
@@ -107,61 +128,121 @@ class Game:
         """
 
         # check blackjack
-        hand = [min(10, card) for card in hand]
-        if hand == [1, 10] or hand == [10, 1]:
-            return 'blackjack'
-        sum_1 = sum(hand)
-        if 1 in hand:
-            hand2 = hand.copy()
-            hand2[hand2.index(1)] = 11
-            sum_2 = sum(hand2)
-        else:
-            sum_2 = sum_1
-        if sum_1 == 21 or sum_2 == 21:
-            return "win"
-        elif sum_1 > 21 and sum_2 > 21:
-            return "lose"
-        return None
+        hand_ = [min(10, card) for card in hand.hand]
+        hand.sum = Game.hand_sum(hand.hand)
+        if hand_ == [1, 10] or hand_ == [10, 1]:
+            hand.status = "blackjack"
+        if hand.sum == 21:
+            hand.status = "win"
+        elif hand.sum > 21:
+            hand.status = "lost"
+
+    def update_dealer_hand(self):
+        """
+
+        """
+        dealer_sum = self.hand_sum(self.hands[self.id])
+        while dealer_sum < 17:
+            self.hands[self.id].append(self.deck[self.index])
+            self.index += 1
+            if self.cut_card_reached():
+                return False
+            dealer_sum = self.hand_sum(self.hands[self.id])
+        return True
+
+    def evaluate_round(self):
+        """
+
+        """
+        if not self.update_dealer_hand():
+            return False
+        self.logger.debug("Round-{} dealer hand: {}.".format(self.game_round,self.hands[self.id]))
+        dealer_sum = self.hand_sum(self.hands[self.id])
+        dealer_hand = [min(x, 10) for x in self.hands[self.id]]
+        for player in self.players:
+            for hand in self.hands[player.id]:
+                if hand.status == 'discard':
+                    continue
+                if hand.status == "lost":
+                    player.start_money += self.ratios["lost"]*hand.bet
+                elif hand.status == "blackjack":
+                    if dealer_hand == [1, 10] or dealer_hand == [10, 1]:
+                        player.start_money += self.ratios["push"] * hand.bet
+                        hand.status = 'push'
+                    else:
+                        player.start_money += self.ratios["blackjack"] * hand.bet
+                elif hand.status == "win":
+                    if dealer_sum == 21:
+                        player.start_money += self.ratios["push"] * hand.bet
+                        hand.status = 'push'
+                    else:
+                        player.start_money += self.ratios["win"] * hand.bet
+                elif not hand.status:
+                    if dealer_sum > 21 or dealer_sum < hand.sum:
+                        player.start_money += self.ratios["win"] * hand.bet
+                        hand.status = 'win'
+                    elif dealer_sum == hand.sum:
+                        player.start_money += self.ratios["push"] * hand.bet
+                        hand.status = 'push'
+                    elif dealer_sum > hand.sum:
+                        player.start_money += self.ratios["lost"] * hand.bet
+                        hand.status = 'lost'
+                    else:
+                        self.logger.error("Round-{} Player:{}\tno evaluation.".format(self.game_round,
+                                                                                           player.id + 1))
+                        raise ValueError
+                else:
+                    self.logger.error("Round-{} Player:{}\tno evaluation.".format(self.game_round,
+                                                                                  player.id + 1))
+                    raise ValueError
+        return True
 
     def play_round(self):
         """
         description goes here.
         """
         self.game_round += 1
+        self.logger.debug("Round-{} starts".format(self.game_round))
+        if not self.distribute_cards():
+            return False
+        # debug
+        # self.hands[self.id] = [6, 7]
+        # self.hands[0][0].hand = [1, 8]
         for player in self.players:
             for hand in self.hands[player.id]:
                 while True:
-                    if len(hand.hand) == 1: # only one card in the hand, give card.
+                    if len(hand.hand) == 1:  # only one card in the hand, give card.
                         hand.hand.append(self.deck[self.index])
                         self.index += 1
                         if self.cut_card_reached():
                             return False
                     # assess hand, check if hand can continue
-                    status = self.calculate_hand_status(hand.hand)
-                    self.logger.debug("Round: {}\tPlayer:{}\tstatus: {} with hand:\t{}".format(self.game_round,
-                                                                                               player.id,
-                                                                                               hand.status,
-                                                                                               hand.hand))
-                    if status in self.ratios.keys():
-                        hand.status = status
+                    self.calculate_hand_status(hand)
+                    self.logger.debug("Round-{} Player-{}\tstatus: {} hand: {}\tdealer upcard: {}".format(self.game_round,
+                                                                                                          player.id+1,
+                                                                                                          hand.status,
+                                                                                                          hand.hand,
+                                                                                                          self.hands[self.id]))
+                    if hand.status in self.ratios.keys():
                         break
                     action = player.play(hand)
-                    self.logger.debug("Round: {}\tPlayer:{} {} with hand:\t{}\tdealers hand: {}".format(self.game_round,
-                                                                                                        player.id,
-                                                                                                        action,
-                                                                                                        hand.hand,
-                                                                                                        self.hands[self.id]))
+                    if not action:
+                        self.logger.error("Round-{} Player:{}\tno action returned.".format(self.game_round,
+                                                                                           player.id + 1))
+                        raise ValueError
+                    self.logger.debug("Round-{} Player:{}\taction: {}".format(self.game_round,
+                                                                              player.id+1,
+                                                                              action))
                     if action == "stand":
                         break
-                    elif action == "hit":
+                    elif action == "hit" or action == "double":
+                        if action == "double":
+                            hand.bet *= 2
                         hand.hand.append(self.deck[self.index])
                         self.index += 1
                         if self.cut_card_reached():
                             return False
                         continue
-                    elif action == "double":
-                        hand.bet *= 2
-                        break
                     elif action == "split":
                         #TODO maximum split is limited to 4
                         hand_0 = Hand(hand.bet)
@@ -170,11 +251,32 @@ class Game:
                         hand_1.hand = [hand.hand[1]]
                         self.hands[player.id].append(hand_0)
                         self.hands[player.id].append(hand_1)
-                        continue
+                        hand.status = 'discard'
+                        break
+        # evaluate round
+        if not self.evaluate_round():
+            return False
+        # logging
+        for player in self.players:
+            hands = [hand.hand for hand in self.hands[player.id]]
+            statoos = [hand.status for hand in self.hands[player.id]]
+            bets = [hand.bet for hand in self.hands[player.id]]
+            self.logger.debug("Round-{} Player:{}\thands: {}\tstatoos: {}\tbets: {}\tmoney: {}".format(self.game_round,
+                                                                                                       player.id + 1,
+                                                                                                       hands,
+                                                                                                       statoos,
+                                                                                                       bets,
+                                                                                                       player.start_money))
         return True
 
-def play_game():
-    pass
+    def play_game(self):
+        """
+
+        """
+        while True:
+            if not self.play_round():
+                break
+
 
 if __name__ == '__main__':
 
@@ -183,13 +285,4 @@ if __name__ == '__main__':
                 bet=1,
                 number_of_decks=6,
                 logging_level='debug')
-    game.distribute_cards()
-    game.play_round()
-    game.play_round()
-    game.play_round()
-    game.play_round()
-    game.play_round()
-    game.play_round()
-    game.play_round()
-
-
+    game.play_game()
